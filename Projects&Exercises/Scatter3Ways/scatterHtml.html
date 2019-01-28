@@ -7,7 +7,7 @@
     <style>
         /* 5) Set `circle` elements to have a "fill" of "purple" or whatever color you choose */
 circle {
-  fill: purple;
+  fill: red;
 }
 svg {
   border: 1px solid #f0f;
@@ -17,11 +17,13 @@ svg {
 
 <body>
 <!-- 1) Make a container `<div>` in which you'll render your content -->
+<div>
 
 <!-- 2) Create a `<p>` element in which you write "My HTML Scatter" -->
-
+<p>My HTML Scatter</p>
 <!-- 3) Make a container `<svg>` element in which you'll place your circles -->
-<!-- Set your svg's `width` to 300, and `height` to `400` -->
+<SVG height = 300 width = 400>
+    <!-- Set your svg's `width` to 300, and `height` to `400` -->
 
 <!-- 4) Put 3 `<circle>` inside of your `<svg>`,
 setting the properties for each one: -->
@@ -30,6 +32,14 @@ setting the properties for each one: -->
 - `cy`: How for to move the circle in the `y` direction (down from the top). Should be 100, 150, and 200. 
 - 'r': circle's radius. Should be 10, 15, and 20.
 -->
+    <circle cx = 100 cy = 100 r = 10></circle>
+    <circle cx = 150 cy = 150 r = 15></circle>
+    <circle cx = 200 cy = 200 r = 20></circle>
+
+</SVG>
+
+</div>
+
 </body>
 
 </html>
