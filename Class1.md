@@ -1,3 +1,4 @@
+
 # Welcome to Day One! :D
 
 # Agenda:
