@@ -5,8 +5,28 @@
 
 <style type="text/css">
 
+.axis line {
+    stroke-width:1px;
+    stroke: #ccc;
+    stroke-dasharray: 2px 2px;
+}
+
+.axis text {
+    font-size: 12px;
+    fill: #777;
+}
+
+.axis path {
+    display: none;
+}
+
 svg {
-  border:1px solid #f0f;
+    border: 1px solid #f0f;
+}
+
+.ufoGroup text {
+    fill: #aaa;
+    font-size: 11px;
 }
 
 /*NEW CSS GOES HERE*/
@@ -14,11 +34,13 @@ svg {
 </style>
 
 <body>
+<div id='titleDiv'></div>
+<div id="buttonsDiv"></div>
 </body>
 
 <script>
 
-var data = [
+/*var data = [
   {"date": "12/2018", "count": 233},
   {"date": "12/2018", "count": 233},
   {"date": "11/2018", "count": 228},
@@ -32,66 +54,187 @@ var data = [
   {"date": "03/2018", "count": 235},
   {"date": "02/2018", "count": 235},
   {"date": "01/2018", "count": 311}
-];
-window.data = data;
+];*/
 
-//format data
-data.forEach(function(d) {
-    d.count = +d.count;
-    d.month = d.date.split('/')[0];
-});
+function ready(error, data) {
+    if (error) return console.warn(error);
+
+    window.data = data;
+
+    var parseTime = d3.timeParse("%m/%Y");
+
+//format date
+
+    data.forEach(function(d) {
+
+        d.count = +d.count;
+        d.month = d.date.split('/')[0];
+        d.year = d.date.split('/')[1];
+        d.date = parseTime(d.date);
+    });
 
 //create svg
-var radius = 10;
+    var startData = data.filter(function(d) { return d.year == "2018"; })
 
-var margin = {top: 20, right: 40, bottom: 20, left: 30};
+    var transitionTime = 1000;
 
-var width = 960 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
+    var yearList = d3.set(data.map(function(d) { return d.year })).values();
 
-var svg = d3.select("body").append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    function dataSwap(datasetGroup) {
 
-var xScale = d3.scaleLinear()
-    .domain([1,12])
-    .range([0,width]);
+        var thisDataGroup = data.filter(function(d) { return d.year == datasetGroup})
 
-var yScale = d3.scaleLinear()
-    .domain([0,400])
-    .range([height,0]);
+        xScale
+            .domain(d3.extent(thisDataGroup, function(d) { return d.date; }));
 
-var xAxis = d3.axisBottom(xScale);
+        yScale
+            .domain(d3.extent(thisDataGroup, function(d) { return d.count; }));
 
-var yAxis = d3.axisLeft(yScale);
+        // attaches new scales to the axes
+        xAxis.scale(xScale);
 
-svg.append('g')
-    .attr('class', 'x axis') //gives two classes, both 'x', and 'axis'
-    .attr('transform','translate(0,' + height + ')')
-    .call(xAxis);
+        yAxis.scale(yScale);
 
-svg.append('g')
-    .attr('class','y axis')
-    .call(yAxis);
+        // Updates the axis groups, and therefore the labels
+        xAxisGroup
+            .transition()
+            .duration(transitionTime/1.5)
+            .call(xAxis);
 
-var ufoGroup = svg.selectAll('.ufoGroup')
-    .data(data)
-    .enter()
-    .append('g')
-    .attr('class','ufoGroup')
-    .attr('transform',function(d) {return ('translate(' +  xScale(d.month) + ',' + yScale(d.count) + ')'); });
+        yAxisGroup
+            .transition()
+            .duration(transitionTime/1.5)
+            .call(yAxis);
 
-ufoGroup.append('circle')
-    .attr('class','ufoCircle')
-    .attr('r',radius);
+        //NEW CODE:
+        svg.selectAll('.ufoGroup')
+            .data(thisDataGroup)
+            .transition()
+            .ease(d3.easeElastic)
+            .duration(transitionTime)
+            .attr('transform', function(d) { return 'translate(' + xScale(d.date) + ',' + yScale(d.count) + ')'});
 
-ufoGroup.append('text')
-    .attr('class','ufoText')
-    .attr('dx',radius)
-    .attr('dy',radius)
-    .text(function(d) { return d.count});
+        svg.selectAll('.ufoText')
+            .data(thisDataGroup)
+            .text(function(d) { return d.count});
+
+        d3.select('#titleText')
+            .text('UFO Sightings in ' + datasetGroup);
+
+    }
+
+    var radius = 10;
+
+    var margin = {top: 20, right: 40, bottom: 20, left: 30};
+
+    var width = 960 - margin.left - margin.right,
+        height = 500 - margin.top - margin.bottom;
+
+    var svg = d3.select("body").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    var xScale = d3.scaleTime()
+        //.domain([1,12])
+        .domain(d3.extent(startData, function(d) {return d.date;}))
+        .range([0,width]);
+
+    var yScale = d3.scaleLinear()
+        .domain(d3.extent(startData, function(d) {return d.count}))
+        .range([height,0]);
+
+    var xAxis = d3.axisBottom(xScale)
+        .tickSize(-height);
+
+    var yAxis = d3.axisLeft(yScale)
+        .tickSize(-width);
+
+    var xAxisGroup = svg.append('g')
+        .attr('class', 'x axis') //gives two classes, both 'x', and 'axis'
+        .attr('transform','translate(0,' + height + ')')
+        .call(xAxis);
+
+    var yAxisGroup = svg.append('g')
+        .attr('class','y axis')
+        .call(yAxis);
+
+    var ufoGroup = svg.selectAll('.ufoGroup')
+        .data(startData)
+        .enter()
+        .append('g')
+        .attr('class','ufoGroup')
+        .attr('transform',function(d) {return ('translate(' +  xScale(d.date) + ',' + yScale(d.count) + ')'); })
+        .on('mouseenter',function(d) {
+            d3.selectAll('circle')
+                .transition()
+                .duration(transitionTime/5)
+                .style('opacity',0.5);
+            d3.select(this)
+                .select('text')
+                .transition()
+                .ease(d3.easeElastic)
+                .duration(transitionTime)
+                .style('opacity',1)
+                .attr('dx',radius*2)
+                .attr('dy',radius*2);
+            d3.select(this)
+                .select('circle')
+                .transition()
+                .ease(d3.easeElastic)
+                .duration(transitionTime)
+                .attr('r',radius*2)
+                .style('opacity',1);
+
+        })
+        .on('mouseleave',function(d) {
+            d3.selectAll('circle')
+                .transition()
+                .duration(transitionTime/5)
+                .style('opacity',1);
+            d3.select(this)
+                .select('text')
+                .transition()
+                .ease(d3.easeElastic)
+                .duration(transitionTime)
+                .style('opacity',0)
+                .attr('dx',radius)
+                .attr('dy',radius);
+            d3.select(this)
+                .select('circle')
+                .transition()
+                .ease(d3.easeElastic)
+                .duration(transitionTime)
+                .attr('r',radius);
+        });
+
+    ufoGroup.append('circle')
+        .attr('class','ufoCircle')
+        .style('fill', 'limegreen')
+        .attr('r',radius);
+
+    ufoGroup.append('text')
+        .attr('class','ufoText')
+        .attr('dx',radius)
+        .attr('dy',radius)
+        .text(function(d) { return d.count})
+        .attr('opacity',0);
+
+    d3.select('#titleDiv')
+        .append('h1')
+        .attr('id','titleText')
+        .text('UFO Sightings in 2018');
+
+    d3.select('#buttonsDiv') //select div with id buttonsDiv
+        .selectAll('button') //look for existing buttons
+        .data(yearList) //bind data (year list)
+        .enter()
+        .append('button') //append buttons for each data point
+        .text(function(d) { return d; }) //append text to each button that corresponds to the data point (Which is a year)
+        .on('click', function(d) {
+            dataSwap(d)
+        });
 
 // //create circles
 // var circles = svg.selectAll('.ufoCircle')
@@ -113,5 +256,12 @@ ufoGroup.append('text')
 //     .text(function(d) { return d.count})
 //     .attr('dx',radius)
 //     .attr('dy',radius);
+
+}
+
+d3.csv("data/ufo.csv", ready);
+
+
+
 
 </script>
