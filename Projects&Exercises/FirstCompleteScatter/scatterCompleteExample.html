@@ -53,12 +53,12 @@ function dataSwap(datasetGroup) {
 
   yAxis.scale(yScale);
 
-  xAxisGroup
+  xAxisGroup.transition()
+    .duration(transitionTime/5)
     .call(xAxis);
 
-  yAxisGroup
-    .transition()
-    .duration(transitionTime)
+  yAxisGroup.transition()
+    .duration(transitionTime/5)
     .call(yAxis);
   
   // move locations of each ufo group (each of which contain a circle and text)
