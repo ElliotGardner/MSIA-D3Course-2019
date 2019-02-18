@@ -35,6 +35,24 @@ var svg = div.append('svg')
 //     - `y`: How for to move the rect in the `y` direction (down from the top). Should be `10`, `40` `70` 
 //     - `width`: How far to draw the rectangle to the right. Should be `100`,`200`, `300` 
 //     - `height`: The vertical height of each rectangle. Should be `20` for all rectangles
+/*svg.append('rect')
+    .attr('x',0)
+    .attr('y',10)
+    .attr('width',100)
+    .attr('height',20);
+
+svg.append('rect')
+    .attr('x',0)
+    .attr('y',40)
+    .attr('width',200)
+    .attr('height',20);
+
+svg.append('rect')
+    .attr('x',0)
+    .attr('y',70)
+    .attr('width',300)
+    .attr('height',20);*/
+
 
 // This is the dataset to drive the layout:
 var data = [{
@@ -52,6 +70,15 @@ var data = [{
 ];
 
 // New code here:
+    var rects = svg.selectAll('rect')
+
+    rects.data(data)
+        .enter()
+        .append('rect')
+        .attr('x',0)
+        .attr('height',20)
+        .attr('y',function (d) {return d.y})
+        .attr('width',function (d) {return d.width});
   
 </script>
 
